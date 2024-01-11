@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkMax;
@@ -46,6 +47,7 @@ public class Robot extends TimedRobot {
   private JoystickButton turnFwdButton;
   private JoystickButton turnRvsButton;
   private AHRS navX;
+ 
 
   /**
    * This function is run when the robot is first started up and should be used
@@ -68,6 +70,7 @@ public class Robot extends TimedRobot {
 
     //Cancoder
     absTurnEncoder = new CANcoder(21);
+
 
     
     //OI
@@ -95,6 +98,8 @@ public class Robot extends TimedRobot {
   public void robotPeriodic() {
 
     // Publish encoder values to the dashboard
+    //absEncoderPosition = absTurnEncoder.getAbsolutePosition();
+
     SmartDashboard.putNumber("Drive Encoder Position: ", driveEncoder.getPosition());
     SmartDashboard.putNumber("Turn Encoder Position: ", turnEncoder.getPosition());
     SmartDashboard.putNumber("NavX Gyro Heading: ", navX.getAngle());
@@ -168,6 +173,8 @@ public class Robot extends TimedRobot {
     } else {
       turnMotor.set(0);
     }
+
+  
 
   }
 
