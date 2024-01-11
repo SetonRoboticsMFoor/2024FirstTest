@@ -5,15 +5,18 @@
 package frc.robot;
 
 import com.ctre.phoenix6.hardware.CANcoder;
+import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -42,6 +45,7 @@ public class Robot extends TimedRobot {
   private JoystickButton driveRvsButton;
   private JoystickButton turnFwdButton;
   private JoystickButton turnRvsButton;
+  private AHRS navX;
 
   /**
    * This function is run when the robot is first started up and should be used
@@ -72,6 +76,9 @@ public class Robot extends TimedRobot {
     driveRvsButton = new JoystickButton(driveStick, 2);
     turnFwdButton = new JoystickButton(driveStick, 3);
     turnRvsButton = new JoystickButton(driveStick, 4);
+
+    navX = new AHRS(SPI.Port.kMXP);
+    
   }
 
   /**
@@ -90,9 +97,11 @@ public class Robot extends TimedRobot {
     // Publish encoder values to the dashboard
     SmartDashboard.putNumber("Drive Encoder Position: ", driveEncoder.getPosition());
     SmartDashboard.putNumber("Turn Encoder Position: ", turnEncoder.getPosition());
+    SmartDashboard.putNumber("NavX Gyro Heading: ", navX.getAngle());
 
     //FIXME!!!!!!!!!!!!!! putNumber does not work for absolute encoder
-    //SmartDashboard.putNumber("Absolute Encoder Position: ", absTurnEncoder.getPosition());
+    //SmartDashboard.putNumber("Absolute Encoder Position: ", absTurnEncoder.getAbsolutePosition());
+ 
   }
 
   /**
