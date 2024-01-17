@@ -4,7 +4,6 @@
 
 package frc.robot;
 
-import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkMax;
@@ -16,8 +15,6 @@ import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -33,21 +30,41 @@ public class Robot extends TimedRobot {
   private static final String kCustomAuto = "My Auto";
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
-  private CANSparkMax driveMotor;
-  private RelativeEncoder driveEncoder;
 
-  private CANSparkMax turnMotor;
-  private RelativeEncoder turnEncoder;
+  // Front left motors
+  private CANSparkMax frontLeftDriveMotor;
+  private RelativeEncoder frontLeftDriveEncoder;
+  private CANSparkMax frontLeftTurnMotor;
+  private RelativeEncoder frontLeftTurnEncoder;
+  private CANcoder frontLeftAbsTurnEncoder;
 
-  private CANcoder absTurnEncoder;
+  // Rear left motors
+  private CANSparkMax rearLeftDriveMotor;
+  private RelativeEncoder rearLeftDriveEncoder;
+  private CANSparkMax rearLeftTurnMotor;
+  private RelativeEncoder rearLeftTurnEncoder;
+  private CANcoder rearLeftAbsTurnEncoder;
+
+  // rear right motors
+  private CANSparkMax frontRightDriveMotor;
+  private RelativeEncoder frontRightDriveEncoder;
+  private CANSparkMax frontRightTurnMotor;
+  private RelativeEncoder frontRightTurnEncoder;
+  private CANcoder frontRightAbsTurnEncoder;
+
+  // Rear right motors
+  private CANSparkMax rearRightDriveMotor;
+  private RelativeEncoder rearRightDriveEncoder;
+  private CANSparkMax rearRightTurnMotor;
+  private RelativeEncoder rearRightTurnEncoder;
+  private CANcoder rearRightAbsTurnEncoder;
 
   private Joystick driveStick;
-  private JoystickButton driveFwdButton;
-  private JoystickButton driveRvsButton;
-  private JoystickButton turnFwdButton;
-  private JoystickButton turnRvsButton;
+
   private AHRS navX;
- 
+
+  private double driveSpeed;
+  private double turnSpeed;
 
   /**
    * This function is run when the robot is first started up and should be used
@@ -60,28 +77,39 @@ public class Robot extends TimedRobot {
     m_chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
 
-    //Drive contols
-    driveMotor = new CANSparkMax(11, MotorType.kBrushless);
-    driveEncoder = driveMotor.getEncoder();
+    // Front left
+    frontLeftDriveMotor = new CANSparkMax(11, MotorType.kBrushless);
+    frontLeftDriveEncoder = frontLeftDriveMotor.getEncoder();
+    frontLeftTurnMotor = new CANSparkMax(13, MotorType.kBrushless);
+    frontLeftTurnEncoder = frontLeftTurnMotor.getEncoder();
+    frontLeftAbsTurnEncoder = new CANcoder(21);
 
-    //Turn controls
-    turnMotor = new CANSparkMax(13, MotorType.kBrushless);
-    turnEncoder = turnMotor.getEncoder();
+    // Rear left
+    rearLeftDriveMotor = new CANSparkMax(3, MotorType.kBrushless);
+    rearLeftDriveEncoder = frontLeftDriveMotor.getEncoder();
+    rearLeftTurnMotor = new CANSparkMax(5, MotorType.kBrushless);
+    rearLeftTurnEncoder = frontLeftTurnMotor.getEncoder();
+    rearLeftAbsTurnEncoder = new CANcoder(20);
 
-    //Cancoder
-    absTurnEncoder = new CANcoder(21);
+    // Front Right
+    frontRightDriveMotor = new CANSparkMax(4, MotorType.kBrushless);
+    frontRightDriveEncoder = frontRightDriveMotor.getEncoder();
+    frontRightTurnMotor = new CANSparkMax(14, MotorType.kBrushless);
+    frontRightTurnEncoder = frontRightTurnMotor.getEncoder();
+    frontRightAbsTurnEncoder = new CANcoder(23);
 
+    // Rear Right
+    rearRightDriveMotor = new CANSparkMax(10, MotorType.kBrushless);
+    rearRightDriveEncoder = frontRightDriveMotor.getEncoder();
+    rearRightTurnMotor = new CANSparkMax(8, MotorType.kBrushless);
+    rearRightTurnEncoder = frontRightTurnMotor.getEncoder();
+    rearRightAbsTurnEncoder = new CANcoder(22);
 
-    
-    //OI
+    // OI
     driveStick = new Joystick(0);
-    driveFwdButton = new JoystickButton(driveStick, 1);
-    driveRvsButton = new JoystickButton(driveStick, 2);
-    turnFwdButton = new JoystickButton(driveStick, 3);
-    turnRvsButton = new JoystickButton(driveStick, 4);
 
     navX = new AHRS(SPI.Port.kMXP);
-    
+
   }
 
   /**
@@ -98,15 +126,38 @@ public class Robot extends TimedRobot {
   public void robotPeriodic() {
 
     // Publish encoder values to the dashboard
-    //absEncoderPosition = absTurnEncoder.getAbsolutePosition();
+    // absEncoderPosition = absTurnEncoder.getAbsolutePosition();
 
-    SmartDashboard.putNumber("Drive Encoder Position: ", driveEncoder.getPosition());
-    SmartDashboard.putNumber("Turn Encoder Position: ", turnEncoder.getPosition());
+    SmartDashboard.putNumber("Front Left Drive Encoder Position: ",
+        frontLeftDriveEncoder.getPosition());
+    SmartDashboard.putNumber("Rear Left Drive Encoder Position: ",
+        rearLeftDriveEncoder.getPosition());
+    SmartDashboard.putNumber("Front Right Drive Encoder Position: ",
+        frontRightDriveEncoder.getPosition());
+    SmartDashboard.putNumber("Rear Right Drive Encoder Position: ",
+        rearRightDriveEncoder.getPosition());
+
+    SmartDashboard.putNumber("Front Left Turn Encoder Position: ",
+        frontLeftTurnEncoder.getPosition());
+    SmartDashboard.putNumber("Rear Left Turn Encoder Position: ",
+        rearLeftTurnEncoder.getPosition());
+    SmartDashboard.putNumber("Front Right Turn Encoder Position: ",
+        frontRightTurnEncoder.getPosition());
+    SmartDashboard.putNumber("Rear Right Turn Encoder Position: ",
+        rearRightTurnEncoder.getPosition());
+
     SmartDashboard.putNumber("NavX Gyro Heading: ", navX.getAngle());
 
-    //FIXME!!!!!!!!!!!!!! putNumber does not work for absolute encoder
-    //SmartDashboard.putNumber("Absolute Encoder Position: ", absTurnEncoder.getAbsolutePosition());
- 
+    // Encoder works!!!
+    SmartDashboard.putNumber("Front Left Absolute Encoder Position: ",
+        frontLeftAbsTurnEncoder.getAbsolutePosition().getValueAsDouble());
+    SmartDashboard.putNumber("Rear Left Absolute Encoder Position: ",
+        rearLeftAbsTurnEncoder.getAbsolutePosition().getValueAsDouble());
+    SmartDashboard.putNumber("Front Right Absolute Encoder Position: ",
+        frontRightAbsTurnEncoder.getAbsolutePosition().getValueAsDouble());
+    SmartDashboard.putNumber("Rear Right Absolute Encoder Position: ",
+        rearRightAbsTurnEncoder.getAbsolutePosition().getValueAsDouble());
+
   }
 
   /**
@@ -157,24 +208,37 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
 
     // Move drive motors forward or reverse
-    if (driveFwdButton.getAsBoolean() == true) {
-      driveMotor.set(.25);
-    } else if (driveRvsButton.getAsBoolean() == true) {
-      driveMotor.set(-.25);
-    } else {
-      driveMotor.set(0);
+    driveSpeed = driveStick.getRawAxis(1);
+
+    // Apply deadband
+    if (driveSpeed > 0 && driveSpeed < 0.1) {
+      driveSpeed = 0.0;
     }
 
-    //Move turn motors forward or reverse
-     if (turnFwdButton.getAsBoolean() == true) {
-      turnMotor.set(.25);
-    } else if (turnRvsButton.getAsBoolean() == true) {
-      turnMotor.set(-.25);
-    } else {
-      turnMotor.set(0);
+    if (driveSpeed < 0 && driveSpeed > -0.1) {
+      driveSpeed = 0.0;
     }
 
-  
+    frontLeftDriveMotor.set(driveSpeed);
+    rearLeftDriveMotor.set(driveSpeed);
+    frontRightDriveMotor.set(driveSpeed);
+    rearRightDriveMotor.set(driveSpeed);
+
+    turnSpeed = driveStick.getRawAxis(4);
+
+    // Apply deadband
+    if (turnSpeed > 0 && turnSpeed < 0.1) {
+      turnSpeed = 0.0;
+    }
+
+    if (turnSpeed < 0 && turnSpeed > -0.1) {
+      turnSpeed = 0.0;
+    }
+
+    frontLeftTurnMotor.set(turnSpeed);
+    rearLeftTurnMotor.set(turnSpeed);
+    frontRightTurnMotor.set(turnSpeed);
+    rearRightTurnMotor.set(turnSpeed);
 
   }
 
